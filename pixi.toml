@@ -1,7 +1,7 @@
 [workspace]
 authors = ["tzujie huang <64339052+huangfrederick@users.noreply.github.com>"]
 channels = ["conda-forge"]
-name = "pypaperbot"
+name = "paperfetch"
 platforms = ["osx-arm64"]
 version = "0.1.0"
 
