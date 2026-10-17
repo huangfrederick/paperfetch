@@ -16,6 +16,8 @@ pypaperbot = ">=1.4.1, <2"
 undetected-chromedriver = ">=3.5.5, <4"
 selenium = ">=4.51.0, <5"
 bibtexparser = ">=1.2, <2"
+requests = ">=2.34.2, <3"
+python-dotenv = ">=1.2.4, <2"
 
 [feature.dev.dependencies]
 ruff = "*"
