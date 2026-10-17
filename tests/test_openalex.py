@@ -12,7 +12,12 @@ import requests  # only needed for fake_get to raise the same error as real requ
 # tests for paperfetch's own packages
 from paperfetch import openalex  # module to test
 from paperfetch.models import Paper
-from paperfetch.openalex import find_pdf_url, get_work, parse_work  # functions to test
+from paperfetch.openalex import (  # functions to test
+    find_pdf_url,
+    get_work,
+    parse_work,
+    search_works,
+)
 
 # --- find_pdf_url: fake work records shaped like real OpenAlex data ---
 
@@ -210,3 +215,38 @@ def test_paper_is_read_only():
 
     with pytest.raises(FrozenInstanceError):  # act and asser together
         paper.title = "Changed"
+
+
+# --- search_works ---
+
+
+def test_search_works_sends_query_and_parses_results(monkeypatch):
+    """Check the search part of requests.
+
+    Ensures every result comes back as a Paper object."""
+    calls = []
+
+    def fake_get(url, params, headers, timeout):
+        """Takes params from search_works for testing."""
+        calls.append({"url": url, "params": params})
+        results = [
+            {"id": "https://openalex.org/W1", "title": "First"},
+            {"id": "https://openalex.org/W2", "title": "Second"},
+        ]
+        return FakeResponse({"results": results})
+
+    monkeypatch.setattr(openalex.requests, "get", fake_get)
+
+    papers = search_works("open access citation advantage", limit=2, api_key="k")
+
+    assert [paper.title for paper in papers] == ["First", "Second"]
+    assert calls[0]["url"] == "https://api.openalex.org/works"
+    assert calls[0]["params"]["search"] == "open access citation advantage"
+    assert calls[0]["params"]["filter"] == "is_oa:true"
+    assert calls[0]["params"]["per_page"] == 2
+
+
+@pytest.mark.parametrize("limit", [0, 101])  # boundary testing for search result limits
+def test_search_works_rejects_bad_limit(limit):
+    with pytest.raises(ValueError):
+        search_works("anything", limit=limit)

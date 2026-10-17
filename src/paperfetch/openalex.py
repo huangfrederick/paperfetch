@@ -7,6 +7,15 @@ import requests
 from paperfetch.models import Paper
 
 BASE_URL = "https://api.openalex.org"
+WORK_FIELDS = (
+    "id,title,doi,publication_year,authorships,open_access,best_oa_location,locations"
+)
+
+
+def _auth_headers(api_key: str | None) -> dict:
+    """Help build the OpenAlex auth header, falling back to the OPENALEX_API_KEY env var."""
+    api_key = api_key or os.environ.get("OPENALEX_API_KEY")
+    return {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
 
 def get_work(doi: str, api_key: str | None = None, timeout: float = 30) -> dict:
@@ -15,14 +24,42 @@ def get_work(doi: str, api_key: str | None = None, timeout: float = 30) -> dict:
     API key is optional. If not given, it is read from the environment variable.
     Without any key, the request still works, but with lower rate limits.
     Raises requests.HTTPError if openalex returns an error such as 404."""
-    api_key = api_key or os.environ.get("OPENALEX_API_KEY")
-    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
     response = requests.get(
-        f"{BASE_URL}/works/doi:{doi}", headers=headers, timeout=timeout
+        f"{BASE_URL}/works/doi:{doi}", headers=_auth_headers(api_key), timeout=timeout
     )
     response.raise_for_status()
     return response.json()
+
+
+def search_works(
+    query: str, limit: int = 25, api_key: str | None = None, timeout: float = 30
+) -> list[Paper]:
+    """Search OpenAlex for open-access works matching `query`, best matches first.
+
+    Returns at most `limit` papers (1-100). Raises requests.HTTPError if
+    OpenAlex returns an error.
+    Calls parse_work defined later in this file.
+    """
+    if not 1 <= limit <= 100:
+        raise ValueError(f"limit must be between 1 and 100, got {limit}")
+
+    params = {  # builds part of the URL and handles encoding
+        "search": query,
+        "filter": "is_oa:true",  # keep only open access works
+        "per_page": limit,  # check inputs are kept to 100 results per page. raises ValueError up front.
+        "select": WORK_FIELDS,
+    }
+    response = requests.get(
+        f"{BASE_URL}/works",
+        params=params,
+        headers=_auth_headers(api_key),
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    return [
+        parse_work(work) for work in response.json()["results"]
+    ]  # list comprehension to turn each raw result into a Paper object.
 
 
 def find_pdf_url(work: dict) -> str | None:
