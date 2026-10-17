@@ -1,12 +1,18 @@
 """Tests for paperfetch.openalex. These never touch the network.
 
-This file contains four parts: imports, 5 tests for find_pdf_url, a fake response class, and 3 tests for get_work."""
+This file contains four parts: imports, 5 tests for find_pdf_url, a fake response class, and 3 tests for get_work.
+Formatting of imports follows standard libraries, third-party packages, and custom packages for ruff."""
 
+from dataclasses import FrozenInstanceError  # Python's standard library
+
+# tests for third-party packages
 import pytest  # only needed for pytest.raises
 import requests  # only needed for fake_get to raise the same error as real requests
 
+# tests for paperfetch's own packages
 from paperfetch import openalex  # module to test
-from paperfetch.openalex import find_pdf_url, get_work  # functions to test
+from paperfetch.models import Paper
+from paperfetch.openalex import find_pdf_url, get_work, parse_work  # functions to test
 
 # --- find_pdf_url: fake work records shaped like real OpenAlex data ---
 
@@ -141,3 +147,66 @@ def test_get_work_raises_on_http_error(monkeypatch):
 
     with pytest.raises(requests.HTTPError):  # check that an error does happen.
         get_work("10.0000/does-not-exist")
+
+
+# --- parse_work: raw OpenAlex dict -> Paper ---
+
+
+def test_parse_work_full_record():
+    """Test using a realistic input, comparing entire Paper with ==.
+
+    Check that DOI prefix gets stripped and every field within Paper is correctly populated."""
+    work = {  # build input for testing.
+        "id": "https://openalex.org/W123",
+        "title": "Array programming with NumPy",
+        "doi": "https://doi.org/10.1038/s41586-020-2649-2",  # give full URL to check stripping
+        "publication_year": 2020,
+        "authorships": [
+            {"author": {"display_name": "Charles R. Harris"}},
+            {"author": {"display_name": "K. Jarrod Millman"}},
+        ],
+        "open_access": {"is_oa": True},
+        "best_oa_location": {
+            "is_oa": True,
+            "pdf_url": "https://www.nature.com/articles/s41586-020-2649-2.pdf",  # is what find_pdf_url should pick up
+            "landing_page_url": "https://doi.org/10.1038/s41586-020-2649-2",
+        },
+        "locations": [],  # leave empty since this is testing an ideal location
+    }
+
+    assert parse_work(
+        work
+    ) == Paper(  # act and run comparison between actual and theoretical results.
+        openalex_id="https://openalex.org/W123",
+        title="Array programming with NumPy",
+        doi="10.1038/s41586-020-2649-2",
+        year=2020,
+        authors=("Charles R. Harris", "K. Jarrod Millman"),
+        is_oa=True,
+        pdf_url="https://www.nature.com/articles/s41586-020-2649-2.pdf",
+        landing_page_url="https://doi.org/10.1038/s41586-020-2649-2",
+    )
+
+
+def test_parse_work_minimal_record():
+    """Test worst case scenario where only id is present.
+
+    Only "id" is guaranteed; everything else should fall back safely"""
+    assert parse_work({"id": "https://openalex.org/W1"}) == Paper(
+        openalex_id="https://openalex.org/W1",
+        title=None,
+        doi=None,
+        year=None,
+        authors=(),
+        is_oa=False,
+        pdf_url=None,
+        landing_page_url=None,
+    )
+
+
+def test_paper_is_read_only():
+    """Tests and locks in frozen=True for any Paper."""
+    paper = parse_work({"id": "https://openalex.org/W1"})  # arrange: create a paper
+
+    with pytest.raises(FrozenInstanceError):  # act and asser together
+        paper.title = "Changed"
