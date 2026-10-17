@@ -2,7 +2,7 @@
 authors = ["tzujie huang <64339052+huangfrederick@users.noreply.github.com>"]
 channels = ["conda-forge"]
 name = "paperfetch"
-platforms = ["osx-arm64"]   # need to support windows/linux users later.
+platforms = ["osx-arm64", "linux-64"]   # need to support windows/linux users later.
 version = "0.1.0"
 
 [tasks]
