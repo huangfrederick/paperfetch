@@ -177,6 +177,7 @@ def test_parse_work_full_record():
             "landing_page_url": "https://doi.org/10.1038/s41586-020-2649-2",
         },
         "locations": [],  # leave empty since this is testing an ideal location
+        "has_content": {"pdf": True},  # indicate that OpenAlex has a cached PDF
     }
 
     assert parse_work(
@@ -190,6 +191,7 @@ def test_parse_work_full_record():
         is_oa=True,
         pdf_url="https://www.nature.com/articles/s41586-020-2649-2.pdf",
         landing_page_url="https://doi.org/10.1038/s41586-020-2649-2",
+        has_cached_pdf=True,
     )
 
 
@@ -206,6 +208,7 @@ def test_parse_work_minimal_record():
         is_oa=False,
         pdf_url=None,
         landing_page_url=None,
+        has_cached_pdf=False,
     )
 
 
@@ -250,3 +253,8 @@ def test_search_works_sends_query_and_parses_results(monkeypatch):
 def test_search_works_rejects_bad_limit(limit):
     with pytest.raises(ValueError):
         search_works("anything", limit=limit)
+
+
+def test_paper_work_id_is_short_id():
+    paper = parse_work({"id": "https://openalex.org/W3082255212"})
+    assert paper.work_id == "W3082255212"

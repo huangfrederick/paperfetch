@@ -7,9 +7,7 @@ import requests
 from paperfetch.models import Paper
 
 BASE_URL = "https://api.openalex.org"
-WORK_FIELDS = (
-    "id,title,doi,publication_year,authorships,open_access,best_oa_location,locations"
-)
+WORK_FIELDS = "id,title,doi,publication_year,authorships,open_access,best_oa_location,locations,has_content"
 
 
 def _auth_headers(api_key: str | None) -> dict:
@@ -93,4 +91,5 @@ def parse_work(work: dict) -> Paper:
         is_oa=bool(open_access.get("is_oa")),
         pdf_url=find_pdf_url(work),
         landing_page_url=best.get("landing_page_url"),
+        has_cached_pdf=bool((work.get("has_content") or {}).get("pdf")),
     )
