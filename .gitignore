@@ -1,0 +1,22 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# keys
+.env
+
+# cache
+.pytest_cache
+.ruff_cache
+
+# output
+data/
+
+# python
+__pycache__/
+
+# jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store

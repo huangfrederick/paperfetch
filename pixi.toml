@@ -1,0 +1,31 @@
+[workspace]
+authors = ["tzujie huang <64339052+huangfrederick@users.noreply.github.com>"]
+channels = ["conda-forge"]
+name = "pypaperbot"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.12.*"
+setuptools = ">=84.0.0,<85"
+
+[pypi-dependencies]
+pypaperbot = ">=1.4.1, <2"
+undetected-chromedriver = ">=3.5.5, <4"
+selenium = ">=4.51.0, <5"
+bibtexparser = ">=1.2, <2"
+
+[feature.dev.dependencies]
+ruff = "*"
+pytest = "*"
+ipykernel = ">=7.4.0,<8"
+
+[feature.dev.tasks]
+lint = "ruff check"
+format = "ruff format"
+test = "pytest"
+
+[environments]
+default = { features = ["dev"], solve-group = "default" }
