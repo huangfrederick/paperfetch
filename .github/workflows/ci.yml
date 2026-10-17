@@ -30,3 +30,6 @@ jobs:
 
       - name: Test
         run: pixi run test
+
+      - name: Smoke-test the command
+        run: pixi run paperfetch --help

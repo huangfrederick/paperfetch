@@ -14,3 +14,6 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]    # tells hatchling where code lives.
 packages = ["src/paperfetch"]
+
+[project.scripts]   # terminal commands this package installs
+paperfetch = "paperfetch.cli:main" # create terminal command named paperfetch that runs the main function in paperfeth.cli module.
