@@ -2,7 +2,7 @@
 authors = ["tzujie huang <64339052+huangfrederick@users.noreply.github.com>"]
 channels = ["conda-forge"]
 name = "paperfetch"
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64"]   # need to support windows/linux users later.
 version = "0.1.0"
 
 [tasks]
@@ -12,12 +12,11 @@ python = "3.12.*"
 setuptools = ">=84.0.0,<85"
 
 [pypi-dependencies]
+paperfetch = { path = ".", editable = true }    # indicate package is defined by pyproject.toml
 pypaperbot = ">=1.4.1, <2"
 undetected-chromedriver = ">=3.5.5, <4"
 selenium = ">=4.51.0, <5"
 bibtexparser = ">=1.2, <2"
-requests = ">=2.34.2, <3"
-python-dotenv = ">=1.2.4, <2"
 
 [feature.dev.dependencies]
 ruff = "*"

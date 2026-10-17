@@ -1,0 +1,16 @@
+[build-system]  # tell pixi and pip which tools turns folder into installable packages.
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]   # holds metadata
+name = "paperfetch"
+version = "0.1.0"
+description = "Find and download open-access papers via the OpenAlex API."
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.34,<3",
+    "python-dotenv>=1.2,<2",
+]
+
+[tool.hatch.build.targets.wheel]    # tells hatchling where code lives.
+packages = ["src/paperfetch"]
