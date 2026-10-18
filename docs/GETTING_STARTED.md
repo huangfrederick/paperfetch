@@ -31,7 +31,7 @@ your computer.
 | **Terminal** | A window where you type instructions for your computer instead of clicking on a user interface. On Windows it may be called *PowerShell* or *Windows Terminal*. You only need it for a few short commands. |
 | **Command** | One line of text you paste into the terminal, then press **Enter** to run. |
 | **Folder path** | A folder's full address, like `/Users/JohnDoe/Documents/paperfetch-main` (Mac) or `C:\Users\JaneDoe\Documents\paperfetch-main` (Windows). |
-| **pixi** | A package management tool that sets up Python and everything paperfetch needs *inside the paperfetch folder*, without changing anything else on your computer. If you've heard of pip or conda, this gives you the same functionality. |
+| **pixi** | A package management tool that sets up Python and everything paperfetch needs *inside the paperfetch folder*, without changing anything else on your computer. If you've heard of pip or conda, this gives you the same functionality with the ability to manage both simultaneously. |
 | **Notebook** | A document in your web browser that mixes instructions with small blocks of code, which you run by pressing a key. paperfetch comes with one. |
 | **JupyterLab** | The program that shows the notebook in your browser. pixi installs it for you. |
 | **API key** | A free, password-like code from OpenAlex that identifies you, so you get your own daily allowance of downloads from their repository. Keys are available to you in your profile once an account is created.|

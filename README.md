@@ -5,7 +5,7 @@
 Search for scholarly papers and download legal open-access PDFs, using the
 [OpenAlex](https://openalex.org) API. 
 
-> **New Users to GitHub/IDEs:** Follow the [step-by-step getting started guide](docs/GETTING_STARTED.md).
+> **For Users New to GitHub/IDEs:** Follow the [step-by-step getting started guide](docs/GETTING_STARTED.md).
 > It walks you through installing and using paperfetch
 > in a notebook on Mac or Windows.
 
@@ -22,8 +22,8 @@ Saved 4 of 5 PDFs to papers/
 
 ## Why
 
-Programmatic access to subscription databases largely depends on your university/institution's contracts with academic publishers. Elsevier's
-Scopus API, for example, is governed by text/data mining agreements. Finding the free, legal copy of a paper by hand
+Programmatic access to subscription-based publication databases largely depends on your university/institution's contracts with academic publishers. Elsevier's
+Scopus API, for example, is governed by text/data mining agreements that do not always provide permissions to scrape data using their services. Finding the free, legal copy of a paper by hand
 often means clicking through publisher pages, repositories and preprint servers.
 
 OpenAlex already indexes where open-access copies live, and it's free for anyone.
@@ -69,7 +69,7 @@ a publisher's PDF link fails.
 pixi run notebook
 ```
 
-Opens `notebooks/quickstart.ipynb` in JupyterLab: edit one
+Opens `notebooks/quickstart.ipynb` in JupyterLab (viewable in browser): edit one
 cell with your search, run the cells, and get a results table, the PDFs and an
 index.csv listing which file is which paper.
 
@@ -78,7 +78,7 @@ index.csv listing which file is which paper.
 ```bash
 paperfetch "open access citation advantage"           # search titles + abstracts, download 10 PDFs into ./papers
 paperfetch "numpy" --limit 25 --out data/pdfs         # more results, custom folder
-paperfetch "numpy" --no-download                      # only list the results
+paperfetch "scikit-learn" --no-download                      # only list the results
 paperfetch '"dental composite" AND ("in vitro" OR experimental)' \
     --from-year 2010 --exclude-reviews --english-only # a Scopus-style query
 paperfetch '"dental composite"' --filter 'cited_by_count:>50' --sort most_cited
