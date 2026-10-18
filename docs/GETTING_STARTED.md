@@ -375,7 +375,9 @@ is not found or not recognized, pixi is gone.
 
 ## Getting help
 
-Please file an issue on GitHub.
+Please file an issue on GitHub. This is essentially a public support ticket. Other people can view and answer this.
+
+Create a free GitHub account, and within the [repository](https://github.com/huangfrederick/paperfetch/issues), you can file issues there.
 
 ## Citing paperfetch
 

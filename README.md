@@ -179,7 +179,7 @@ button (right-hand sidebar) gives APA and BibTeX, generated from
 
 ## Contact
 
-Please file issues on the repository.
+Questions, bugs or ideas: [open an issue](https://github.com/huangfrederick/paperfetch/issues).
 
 ## License
 
