@@ -434,9 +434,9 @@ Create a free GitHub account, and within the [repository](https://github.com/hua
 
 ## Citing paperfetch
 
-If paperfetch helped your research, please cite it. On the
-[paperfetch GitHub page](https://github.com/huangfrederick/paperfetch), click
-**Cite this repository** on the right-hand side for APA and BibTeX formats.
+If paperfetch helps your research, please kindly cite it either as shown below or through GitHub's **Cite this repository** button on the right-hand sidebar.
+
+> Huang F. (2026). paperfetch (version 0.1.0). DOI: 10.5281/zenodo.23459102 URL: https://github.com/huangfrederick/paperfetch
 
 Please also cite OpenAlex, which provides the paper data:
 

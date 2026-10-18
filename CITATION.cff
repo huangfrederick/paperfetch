@@ -13,6 +13,14 @@ repository-code: "https://github.com/huangfrederick/paperfetch"
 license: MIT
 version: 0.1.0
 date-released: "2026-10-18"
+doi: 10.5281/zenodo.23459102
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23459102
+    description: Concept DOI, resolves to the latest version
+  - type: doi
+    value: 10.5281/zenodo.23459103
+    description: Version DOI for paperfetch v0.1.0
 keywords:
   - open access
   - OpenAlex

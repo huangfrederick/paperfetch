@@ -1,6 +1,7 @@
 # paperfetch
 
-[![CI](https://github.com/huangfrederick/paperfetch/actions/workflows/ci.yml/badge.svg)](https://github.com/huangfrederick/paperfetch/actions/workflows/ci.yml)
+[![CI](https://github.com/huangfrederick/paperfetch/actions/workflows/ci.yml/badge.svg)](https://github.com/huangfrederick/paperfetch/actions/workflows/ci.yml) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23459102.svg)](https://doi.org/10.5281/zenodo.23459102)
+
 
 Search for scholarly papers and download legal open-access PDFs, using the
 [OpenAlex](https://openalex.org) API. 
@@ -226,10 +227,9 @@ scholarly works (Priem, Piwowar & Orr, 2022,
 [arXiv:2205.01833](https://arxiv.org/abs/2205.01833)).
 
 ## Citing
+If paperfetch helps your research, please kindly cite it either as shown below or through GitHub's **Cite this repository** button on the right-hand sidebar.
 
-If paperfetch helps your research, please cite it. GitHub's **Cite this repository**
-button (right-hand sidebar) gives APA and BibTeX, generated from
-[`CITATION.cff`](CITATION.cff). Please cite OpenAlex as well (see Acknowledgments).
+> Huang F. (2026). paperfetch (version 0.1.0). DOI: 10.5281/zenodo.23459102 URL: https://github.com/huangfrederick/paperfetch
 
 ## Contact
 
