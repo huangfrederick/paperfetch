@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use paperfetch in your research, please kindly cite it using these metadata."
+type: software
+title: "paperfetch"
+abstract: >-
+  Search the OpenAlex index of scholarly works and download open-access PDFs,
+  from a beginner-friendly Jupyter notebook, the command line, or Python.
+authors:
+  - family-names: Huang
+    given-names: Frederick
+    orcid: "https://orcid.org/0009-0006-7568-551X"
+repository-code: "https://github.com/huangfrederick/paperfetch"
+license: MIT
+version: 0.1.0
+date-released: "2026-10-18"
+keywords:
+  - open access
+  - OpenAlex
+  - scholarly literature
+  - PDF download
+references:
+  - type: article
+    title: >-
+      OpenAlex: A fully-open index of scholarly works, authors, venues,
+      institutions, and concepts
+    authors:
+      - family-names: Priem
+        given-names: Jason
+      - family-names: Piwowar
+        given-names: Heather
+      - family-names: Orr
+        given-names: Richard
+    year: 2022
+    doi: 10.48550/arXiv.2205.01833
+    url: "https://arxiv.org/abs/2205.01833"

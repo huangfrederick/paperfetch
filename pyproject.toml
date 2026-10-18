@@ -6,6 +6,9 @@ build-backend = "hatchling.build"
 name = "paperfetch"
 version = "0.1.0"
 description = "Find and download open-access papers via the OpenAlex API."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Frederick Huang" }]
 requires-python = ">=3.12"
 dependencies = [
     "requests>=2.34,<3",
