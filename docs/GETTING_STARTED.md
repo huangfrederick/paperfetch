@@ -19,8 +19,10 @@ your computer.
 4. [Part 3: Stopping, coming back and updating](#part-3-stopping-coming-back-and-updating)
 5. [Part 4 (optional): Use paperfetch from the terminal](#part-4-optional-use-paperfetch-from-the-terminal)
 6. [Troubleshooting](#troubleshooting)
-7. [Getting help](#getting-help)
-8. [Citing paperfetch](#citing-paperfetch)
+7. [Linux](#linux)
+8. [Uninstalling paperfetch](#uninstalling-paperfetch)
+9. [Getting help](#getting-help)
+10. [Citing paperfetch](#citing-paperfetch)
 
 ## Words you'll see
 
@@ -154,12 +156,33 @@ The notebook explains each step as you go. In short:
 2. **Step 1** asks for an API key ([see below](#getting-a-free-api-key-recommended)).
    Press **Enter** to skip it.
 3. In **Step 2**, change the text between the quotation marks to your search, for
-   example `"coral bleaching thermal tolerance"`. Then run that cell and every cell
+   example `"machine learning in materials science"`. Then run that cell and every cell
    below it.
 4. **Step 3** shows a numbered table of results. Click a title to read the paper online.
 5. **Step 4:** keep `"all"`, or pick papers by their numbers from the table.
 6. **Step 5** downloads the PDFs. **Step 6** writes `index.csv`, a list of which file
    is which paper.
+
+### Searching more precisely
+
+Step 2 of the notebook has search tips and optional settings. For example, to find
+experimental studies on dental composites from 2010 onward, without reviews:
+
+```python
+SEARCH_FOR = '"dental composite" AND ("in vitro" OR experimental)'
+FROM_YEAR = 2010
+EXCLUDE_REVIEWS = True
+ENGLISH_ONLY = True
+```
+
+- Words in **double quotes** are searched as an exact phrase. When your search contains
+  double quotes, put **single quotes** around the whole search, as above.
+- **AND**, **OR** and **NOT** must be in capitals. Brackets group words together.
+- Don't use commas in your search.
+- No database can filter for "experimental studies only". Words like `"in vitro"`
+  or `experimental` steer the search; always check the results yourself.
+- By default only papers with a PDF are listed. Set `ONLY_WITH_PDF = False` to also
+  see papers you can only read online.
 
 <!-- SCREENSHOT: docs/images/results-table.png | the Step 3 results table -->
 
@@ -212,10 +235,7 @@ That's it. pixi is already installed, so this takes seconds.
 5. In a terminal in the new folder, run `pixi run notebook`. The first start takes a
    few minutes again.
 
-**Removing paperfetch:** move your `papers` folder somewhere safe, then delete the
-`paperfetch-main` folder. That removes paperfetch and its Python setup. To remove pixi
-itself too, follow the **Uninstall** section of
-[pixi's installation page](https://pixi.sh/latest/installation/).
+**Removing paperfetch:** see [Uninstalling paperfetch](#uninstalling-paperfetch).
 
 ## Part 4 (optional): Use paperfetch from the terminal
 
@@ -234,8 +254,21 @@ pixi run paperfetch "machine learning in materials science" --no-download
 **Download 5 papers:**
 
 ```
-pixi run paperfetch "machine learning in materials science" --limit 5
+pixi run paperfetch "dental composite" --limit 5
 ```
+
+**A more precise search:**
+
+```
+pixi run paperfetch '"dental composite" AND ("in vitro" OR experimental)' --from-year 2010 --exclude-reviews --english-only
+```
+
+Notice the two kinds of quotation marks: **single quotes** around the whole search,
+**double quotes** around each exact phrase.
+
+> **Windows:** older versions of PowerShell can drop the inner double quotes, which
+> turns a phrase search into an ordinary word search. If results look broader than
+> expected, use the notebook for phrase searches.
 
 Each part of the command means:
 
@@ -258,6 +291,14 @@ saved.
 | `--out my-folder` | `-o my-folder` | Which folder to save PDFs in | `papers` |
 | `--no-download` | | Only list the results | Downloads |
 | `--help` | `-h` | Show all options | |
+| `--from-year 2010` | | Only papers from this year on | Any year |
+| `--to-year 2020` | | Only papers up to this year | Any year |
+| `--exclude-reviews` | | Leave out review articles | Reviews included |
+| `--english-only` | | Only papers in English | All languages |
+| `--include-no-pdf` | | Also list papers without a PDF | Only papers with a PDF |
+| `--search-in title` | | Where to look: `title`, `abstract`, `title_and_abstract` or `all` | `title_and_abstract` |
+| `--sort newest` | | Order: `relevance`, `newest` or `most_cited` | `relevance` |
+| `--filter '...'` | | Advanced: any OpenAlex filter | None |
 
 **Tips**
 
@@ -265,55 +306,67 @@ saved.
   press Enter to run it again, with no retyping.
 - If you told the notebook to remember your API key, the terminal uses it too.
 - When something goes wrong, paperfetch prints one line explaining what happened.
+- If an option's value contains `>` or `<` (as in `--filter 'cited_by_count:>50'`),
+  keep the single quotes. Without them, the terminal treats `>` as "save the output to
+  a file" and quietly creates a file named `50`.
 
 ## Troubleshooting
 
 Look for the message you see, or the closest match.
 
-**`pixi: command not found` (Mac) or `The term 'pixi' is not recognized` (Windows)**
-: The terminal was opened before pixi was installed. Close it, open a new one
+**`pixi: command not found` (Mac) or `The term 'pixi' is not recognized` (Windows)**  
+ The terminal was opened before pixi was installed. Close it, open a new one
   ([Step 2](#step-2-open-a-terminal-in-the-paperfetch-folder)), and try again. If it
   still happens, repeat [Step 3](#step-3-install-pixi).
 
-**`could not find pixi.toml or pyproject.toml`**
-: The terminal isn't in the paperfetch folder. Repeat
+**`could not find pixi.toml or pyproject.toml`**  
+ The terminal isn't in the paperfetch folder. Repeat
   [Step 2](#step-2-open-a-terminal-in-the-paperfetch-folder).
 
-**Windows: `running scripts is disabled on this system` while installing pixi**
-: Install pixi with this command instead, then close and reopen the terminal:
+**Windows: `running scripts is disabled on this system` while installing pixi**  
+ Install pixi with this command instead, then close and reopen the terminal:
   `winget install prefix-dev.pixi`
 
-**The first `pixi run notebook` stops with a network or download error**
-: Check your internet connection and run the command again; pixi picks up where it
+**The first `pixi run notebook` stops with a network or download error**  
+ Check your internet connection and run the command again; pixi picks up where it
   left off. Some university or company networks block these downloads. Try another
   network (a home connection or phone hotspot), or ask your IT department.
 
-**The browser didn't open**
-: Copy the link starting with `http://localhost:8888/lab?token=` from the terminal
+**The browser didn't open**  
+ Copy the link starting with `http://localhost:8888/lab?token=` from the terminal
   into your browser.
 
-**In the notebook: `No module named 'paperfetch'`**
-: The notebook was opened some other way, for example by double-clicking the file.
+**In the notebook: `No module named 'paperfetch'`**  
+ The notebook was opened some other way, for example by double-clicking the file.
   Close it, and start it from the paperfetch folder with `pixi run notebook`.
 
-**In the notebook: `NameError: name '...' is not defined`**
-: A cell was run before the cells above it. Choose **Run → Run All Cells**, or start
+**In the notebook: `NameError: name 'true' is not defined`** (or `'false'`, `'none'`)  
+ `True`, `False` and `None` must start with a capital letter. Fix it in Step 2 and
+  run Step 2 and the cells below it again.
+
+**In the notebook: `NameError: name '...' is not defined`**  
+ A cell was run before the cells above it. Choose **Run → Run All Cells**, or start
   again from the top with Shift + Enter.
 
-**A cell shows `[*]` for a long time**
-: It's still working. Bigger searches and downloads take longer. If nothing has
+**A cell shows `[*]` for a long time**  
+ It's still working. Bigger searches and downloads take longer. If nothing has
   changed after several minutes, click the **■** (stop) button in the toolbar and run
   the cell again.
 
-**Many papers say "no PDF"**
-: That's normal. Some free papers only exist as web pages. Click their titles in the
-  Step 3 table to read them. An API key adds more PDFs.
+**`Please check your settings in Step 2: ...`** (notebook) or **`Search failed: ...`** (terminal)  
+ The rest of the message says what to fix, for example a comma in your search, a
+  misspelled setting, or a start year after the end year.
 
-**"OpenAlex stopped the downloads"**
-: Today's free allowance is used up. Try again tomorrow, or download fewer papers.
+**Some papers say "no PDF"**  
+ The paper has a PDF link, but the website blocked the download. Click its title in
+  the Step 3 table to read it online. An API key lets paperfetch use OpenAlex's own
+  copy for many of these.
 
-**I want paperfetch to forget my API key**
-: Delete the file `.env` in the `paperfetch-main` folder. Its name starts with a dot,
+**"OpenAlex stopped the downloads"**  
+ Today's free allowance is used up. Try again tomorrow, or download fewer papers.
+
+**I want paperfetch to forget my API key**  
+ Delete the file `.env` in the `paperfetch-main` folder. Its name starts with a dot,
   so it's hidden. On Mac, press **Cmd + Shift + .** in Finder to show hidden files. On
   Windows, in File Explorer choose **View → Show → Hidden items**.
 

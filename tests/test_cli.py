@@ -36,9 +36,9 @@ def fake_backend(monkeypatch, tmp_path):
     searches = []  # create lists to record data in.
     downloads = []
 
-    def fake_search(query, limit):
+    def fake_search(query, limit, **options):
         """Record query and limit, returning PAPERS."""
-        searches.append({"query": query, "limit": limit})
+        searches.append({"query": query, "limit": limit, **options})
         return PAPERS
 
     def fake_download(paper, folder):
@@ -65,7 +65,8 @@ def test_searches_downloads_and_reports(fake_backend, capsys):
     # return everything printed in stdout so far as 1 string.
     out = capsys.readouterr().out
     assert exit_code == 0
-    assert searches == [{"query": "citation advantage", "limit": 2}]
+    assert searches[0]["query"] == "citation advantage"
+    assert searches[0]["limit"] == 2
     assert downloads == [
         {"work_id": "W1", "folder": Path("pdfs")},
         {"work_id": "W2", "folder": Path("pdfs")},
@@ -101,7 +102,7 @@ def test_no_download_only_lists(fake_backend, capsys):
 def test_search_error_exits_with_1(fake_backend, monkeypatch, capsys):
     """Replace fake search with one that raises the same ValueError as the real one with a limit of 500."""
 
-    def failing_search(query, limit):
+    def failing_search(query, limit, **options):
         raise ValueError("limit must be between 1 and 100, got 500")
 
     monkeypatch.setattr(cli, "search_works", failing_search)
@@ -137,3 +138,73 @@ def test_non_number_limit_is_rejected_by_argparse(capsys):
 
     assert exit_info.value.code == 2
     assert "invalid int value: 'abc'" in capsys.readouterr().err
+
+
+def test_default_search_options(fake_backend):
+    """Pins CLI defaults to title+abstract, PDF only, relevance, and no extra filters.
+
+    This is what user gets without typing any options.
+    """
+    searches, _downloads = fake_backend
+
+    cli.main(["dental composite"])
+
+    options = searches[0]
+    assert options["search_in"] == "title_and_abstract"
+    assert options["pdf_only"] is True
+    assert options["sort"] == "relevance"
+    assert options["from_year"] is None
+    assert options["extra_filter"] is None
+
+
+def test_search_options_are_passed_through(fake_backend):
+    """Sets every flag and compares to whole recorded call.
+
+    Proves each flag reaches right parameters ("2010" becoming 2010, etc.).
+    """
+    searches, _downloads = fake_backend
+
+    cli.main(
+        [
+            '"dental composite" AND experimental',
+            "--search-in",
+            "title",
+            "--from-year",
+            "2010",
+            "--to-year",
+            "2020",
+            "--exclude-reviews",
+            "--english-only",
+            "--include-no-pdf",
+            "--sort",
+            "newest",
+            "--filter",
+            "cited_by_count:>10",
+        ]
+    )
+
+    assert searches[0] == {
+        "query": '"dental composite" AND experimental',
+        "limit": 10,
+        "search_in": "title",
+        "from_year": 2010,
+        "to_year": 2020,
+        "exclude_reviews": True,
+        "english_only": True,
+        "pdf_only": False,
+        "extra_filter": "cited_by_count:>10",
+        "sort": "newest",
+    }
+
+
+@pytest.mark.parametrize("bad_args", [["--sort", "oldest"], ["--search-in", "titles"]])
+def test_unknown_choices_are_rejected_by_argparse(bad_args, capsys):
+    """Checks choices= works for both options.
+
+    Ensures that invalid choices for --sort and --search-in are rejected by argparse.
+    """
+    with pytest.raises(SystemExit) as exit_info:
+        cli.main(["x", *bad_args])
+
+    assert exit_info.value.code == 2
+    assert "invalid choice" in capsys.readouterr().err

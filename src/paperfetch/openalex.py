@@ -9,6 +9,20 @@ from paperfetch.models import Paper
 BASE_URL = "https://api.openalex.org"
 WORK_FIELDS = "id,title,doi,publication_year,authorships,open_access,best_oa_location,locations,has_content"
 
+# Where in each paper the query is matched. "all" also searches the full text.
+# Maps friendly names users type to OpenAlex's own names.
+SEARCH_FIELDS = {
+    "title": "title.search",
+    "abstract": "abstract.search",
+    "title_and_abstract": "title_and_abstract.search",
+    "all": None,
+}
+SORT_ORDERS = {
+    "relevance": "relevance_score:desc",
+    "newest": "publication_date:desc",
+    "most_cited": "cited_by_count:desc",
+}
+
 
 def _auth_headers(api_key: str | None) -> dict:
     """Help build the OpenAlex auth header, falling back to the OPENALEX_API_KEY env var."""
@@ -30,34 +44,121 @@ def get_work(doi: str, api_key: str | None = None, timeout: float = 30) -> dict:
     return response.json()
 
 
-def search_works(
-    query: str, limit: int = 25, api_key: str | None = None, timeout: float = 30
-) -> list[Paper]:
-    """Search OpenAlex for open-access works matching `query`, best matches first.
+def build_filter(
+    query: str,
+    *,
+    search_in: str = "title_and_abstract",
+    from_year: int | None = None,
+    to_year: int | None = None,
+    exclude_reviews: bool = False,
+    english_only: bool = False,
+    pdf_only: bool = True,
+    extra_filter: str | None = None,
+) -> str:
+    """Turn search options into an OpenAlex filter string, e.g. "is_oa:true,language:en".
 
-    Returns at most `limit` papers (1-100). Raises requests.HTTPError if
-    OpenAlex returns an error.
-    Calls parse_work defined later in this file.
+    Raises ValueError for options OpenAlex would reject or silently misread.
+    "*" indicates everything aftewards should be passed by name to prevent mix ups like swapping to and from_year.
     """
+    if search_in not in SEARCH_FIELDS:
+        # checks bad input before building anything, e.g., titles
+        choices = ", ".join(SEARCH_FIELDS)
+        raise ValueError(f"search_in must be one of {choices}, got {search_in!r}")
+    if from_year and to_year and from_year > to_year:
+        # checks for an actual, real year range
+        raise ValueError(f"from_year ({from_year}) is after to_year ({to_year})")
+
+    # always on filters to ensure nonretracted/open access: collects filter pieces and joins with commas.
+    parts = ["is_oa:true", "is_retracted:false"]
+
+    # e.g. "title_and_abstract.search", or None for "all"
+    field = SEARCH_FIELDS[search_in]
+    if field:
+        # Commas separate filters, so a comma in the query would silently split it.
+        if "," in query:
+            raise ValueError(
+                "Remove commas from the search text; use AND / OR instead."
+            )
+        parts.append(f"{field}:{query}")  # splits on commas
+
+    # optional pieces only when they're specified
+    if from_year or to_year:
+        parts.append(f"publication_year:{from_year or ''}-{to_year or ''}")
+    if exclude_reviews:
+        # OpenAlex labels some reviews as articles, so also drop titles containing "review".
+        parts += ["type:!review", "title.search:NOT review"]
+    if english_only:
+        parts.append("language:en")
+    if pdf_only:
+        parts.append("has_pdf_url:true")
+    if extra_filter:
+        parts.append(extra_filter)
+
+    return ",".join(parts)
+
+
+def search_works(
+    query: str,
+    limit: int = 25,
+    *,
+    search_in: str = "title_and_abstract",
+    from_year: int | None = None,
+    to_year: int | None = None,
+    exclude_reviews: bool = False,
+    english_only: bool = False,
+    pdf_only: bool = True,
+    extra_filter: str | None = None,
+    sort: str = "relevance",
+    api_key: str | None = None,
+    timeout: float = 30,
+) -> list[Paper]:
+    """Search OpenAlex for open-access works matching `query`.
+
+    By default the query is matched against titles and abstracts, and only papers
+    with a PDF link are returned. Returns at most `limit` papers (1-100). Raises
+    ValueError for invalid options, including filters OpenAlex rejects, and
+    requests.HTTPError for other OpenAlex errors.
+    """
+    # check search limits and sort options
     if not 1 <= limit <= 100:
         raise ValueError(f"limit must be between 1 and 100, got {limit}")
+    if sort not in SORT_ORDERS:
+        raise ValueError(f"sort must be one of {', '.join(SORT_ORDERS)}, got {sort!r}")
 
-    params = {  # builds part of the URL and handles encoding
-        "search": query,
-        "filter": "is_oa:true",  # keep only open access works
-        "per_page": limit,  # check inputs are kept to 100 results per page. raises ValueError up front.
+    params = {  # all the criteria of the search
+        "filter": build_filter(
+            query,
+            search_in=search_in,
+            from_year=from_year,
+            to_year=to_year,
+            exclude_reviews=exclude_reviews,
+            english_only=english_only,
+            pdf_only=pdf_only,
+            extra_filter=extra_filter,
+        ),
+        "sort": SORT_ORDERS[sort],
+        "per_page": limit,
         "select": WORK_FIELDS,
     }
+    if search_in == "all":
+        params["search"] = query  # the one case outside of the filter
+
+    # sending and error handling for the request
     response = requests.get(
         f"{BASE_URL}/works",
         params=params,
         headers=_auth_headers(api_key),
         timeout=timeout,
     )
+    if response.status_code == 400:
+        # Usually a typo in extra_filter; OpenAlex's reply says what's wrong.
+        try:
+            message = response.json().get("message", response.text)
+        except ValueError:
+            message = response.text
+        raise ValueError(f"OpenAlex rejected the search: {message[:300]}")
     response.raise_for_status()
-    return [
-        parse_work(work) for work in response.json()["results"]
-    ]  # list comprehension to turn each raw result into a Paper object.
+    return [parse_work(work) for work in response.json()["results"]]
 
 
 def find_pdf_url(work: dict) -> str | None:

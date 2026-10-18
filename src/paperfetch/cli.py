@@ -11,7 +11,7 @@ from dotenv import find_dotenv, load_dotenv
 
 # import custom modules
 from paperfetch.download import download_pdf
-from paperfetch.openalex import search_works
+from paperfetch.openalex import SEARCH_FIELDS, SORT_ORDERS, search_works
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,6 +42,50 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="only list the results, don't download anything",
     )
+    # groups search flags under their own heading in --help
+    search = parser.add_argument_group("search options")
+    search.add_argument(
+        "--search-in",
+        # make argparse reject anything that isn't a key of the table and list valid choices
+        choices=list(SEARCH_FIELDS),
+        default="title_and_abstract",
+        help="where to look for the query (default: title_and_abstract; "
+        "'all' also searches full text)",
+    )
+    search.add_argument(
+        "--from-year", type=int, metavar="YEAR", help="only papers from this year on"
+    )
+    search.add_argument(
+        "--to-year", type=int, metavar="YEAR", help="only papers up to this year"
+    )
+    search.add_argument(
+        "--exclude-reviews",
+        action="store_true",
+        help="leave out review articles",
+    )
+    search.add_argument(
+        "--english-only",
+        action="store_true",
+        help="only papers in English",
+    )
+    search.add_argument(
+        "--include-no-pdf",
+        action="store_true",
+        help="also list open-access papers that have no PDF link",
+    )
+    search.add_argument(
+        "--sort",
+        choices=list(SORT_ORDERS),
+        default="relevance",
+        help="result order (default: relevance)",
+    )
+    search.add_argument(
+        "--filter",
+        dest="extra_filter",
+        metavar="OPENALEX_FILTER",
+        help="any extra OpenAlex filter, e.g. 'cited_by_count:>10'",
+    )
+
     return parser
 
 
@@ -52,7 +96,18 @@ def main(argv: list[str] | None = None) -> int:  # when argv is None, argparse r
     load_dotenv(find_dotenv(usecwd=True))
 
     try:
-        papers = search_works(args.query, limit=args.limit)
+        papers = search_works(
+            args.query,
+            limit=args.limit,
+            search_in=args.search_in,
+            from_year=args.from_year,
+            to_year=args.to_year,
+            exclude_reviews=args.exclude_reviews,
+            english_only=args.english_only,
+            pdf_only=not args.include_no_pdf,  # no flag means pdf_only is True
+            extra_filter=args.extra_filter,
+            sort=args.sort,
+        )
     except (ValueError, requests.RequestException) as error:
         print(f"Search failed: {error}", file=sys.stderr)
         return 1  # expect 0 for success

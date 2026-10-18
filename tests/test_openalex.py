@@ -1,7 +1,7 @@
 """Tests for paperfetch.openalex. These never touch the network.
 
-This file contains four parts: imports, 5 tests for find_pdf_url, a fake response class, and 3 tests for get_work.
-Formatting of imports follows standard libraries, third-party packages, and custom packages for ruff."""
+Sections: find_pdf_url, get_work, parse_work, search_works, build_filter.
+"""
 
 from dataclasses import FrozenInstanceError  # Python's standard library
 
@@ -13,6 +13,7 @@ import requests  # only needed for fake_get to raise the same error as real requ
 from paperfetch import openalex  # module to test
 from paperfetch.models import Paper
 from paperfetch.openalex import (  # functions to test
+    build_filter,
     find_pdf_url,
     get_work,
     parse_work,
@@ -75,6 +76,7 @@ def test_find_pdf_url_handles_missing_fields():
 # --- get_work: replace requests.get with a fake so no real request is sent ---
 
 
+# general rule for fakes: should exactly need the attributes the code actually uses
 class FakeResponse:
     """Stands in for requests.Response."""
 
@@ -82,6 +84,7 @@ class FakeResponse:
         """Runs when FakeResponse is written and gives fake HTTP code 200."""
         self.data = data
         self.status_code = status_code
+        self.text = str(data)
 
     def raise_for_status(self):
         """Raise HTTPError for codes >= 400."""
@@ -220,6 +223,11 @@ def test_paper_is_read_only():
         paper.title = "Changed"
 
 
+def test_paper_work_id_is_short_id():
+    paper = parse_work({"id": "https://openalex.org/W3082255212"})
+    assert paper.work_id == "W3082255212"
+
+
 # --- search_works ---
 
 
@@ -244,8 +252,15 @@ def test_search_works_sends_query_and_parses_results(monkeypatch):
 
     assert [paper.title for paper in papers] == ["First", "Second"]
     assert calls[0]["url"] == "https://api.openalex.org/works"
-    assert calls[0]["params"]["search"] == "open access citation advantage"
-    assert calls[0]["params"]["filter"] == "is_oa:true"
+    # checks default search covers title + abstract, excludes retracted papers, and has a pdf
+    assert calls[0]["params"]["filter"] == (
+        "is_oa:true,is_retracted:false,"
+        "title_and_abstract.search:open access citation advantage,has_pdf_url:true"
+    )
+    # test to see that best matches are first by default
+    assert calls[0]["params"]["sort"] == "relevance_score:desc"
+    # checks default does not back to full-text search
+    assert "search" not in calls[0]["params"]
     assert calls[0]["params"]["per_page"] == 2
 
 
@@ -255,6 +270,104 @@ def test_search_works_rejects_bad_limit(limit):
         search_works("anything", limit=limit)
 
 
-def test_paper_work_id_is_short_id():
-    paper = parse_work({"id": "https://openalex.org/W3082255212"})
-    assert paper.work_id == "W3082255212"
+# --- build_filter: search options -> OpenAlex filter string ---
+
+
+def test_build_filter_defaults():
+    """Pins exact default filter. Fails if default is changed by accident."""
+    assert build_filter("dental composite") == (
+        "is_oa:true,is_retracted:false,"
+        "title_and_abstract.search:dental composite,has_pdf_url:true"
+    )
+
+
+def test_build_filter_all_options():
+    """Turns every option on and compares results as a list.
+
+    Checks each piece is present/written, order of pieces, and pdf_url is absent.
+    """
+    result = build_filter(
+        '"dental composite" AND experimental',
+        search_in="title",
+        from_year=2010,
+        to_year=2020,
+        exclude_reviews=True,
+        english_only=True,
+        pdf_only=False,
+        extra_filter="cited_by_count:>10",
+    )
+    # compares a list of parameters instead of 1 long string, and failures shows diff
+    assert result.split(",") == [
+        "is_oa:true",
+        "is_retracted:false",
+        'title.search:"dental composite" AND experimental',
+        "publication_year:2010-2020",
+        "type:!review",
+        "title.search:NOT review",
+        "language:en",
+        "cited_by_count:>10",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("from_year", "to_year", "expected"),
+    [(2010, None, "publication_year:2010-"), (None, 2015, "publication_year:-2015")],
+)
+def test_build_filter_open_ended_years(from_year, to_year, expected):
+    assert expected in build_filter("x", from_year=from_year, to_year=to_year)
+
+
+def test_build_filter_all_leaves_query_out_of_filter():
+    """Ensures filter contains no search term with "all" search_in.
+
+    Query goes in search= parameter and protects if field:/None logic.
+    """
+    assert "search" not in build_filter("dental composite", search_in="all")
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"query": "resin, composite"},
+        {"query": "x", "search_in": "titles"},
+        {"query": "x", "from_year": 2020, "to_year": 2010},
+    ],
+)
+def test_build_filter_rejects_bad_options(options):
+    """Unpacks a dict in keyword arguments."""
+    with pytest.raises(ValueError):
+        build_filter(**options)
+
+
+def test_search_works_all_uses_search_param(monkeypatch):
+    calls = []
+
+    def fake_get(url, params, headers, timeout):
+        calls.append(params)
+        return FakeResponse({"results": []})
+
+    monkeypatch.setattr(openalex.requests, "get", fake_get)
+
+    search_works("dental composite", search_in="all", sort="newest")
+
+    assert calls[0]["search"] == "dental composite"
+    assert calls[0]["sort"] == "publication_date:desc"
+
+
+def test_search_works_rejects_unknown_sort():
+    with pytest.raises(ValueError):
+        search_works("x", sort="oldest")
+
+
+def test_search_works_turns_bad_filter_into_value_error(monkeypatch):
+    reply = {"message": "made_up_filter is not a valid field"}
+    monkeypatch.setattr(
+        openalex.requests,
+        "get",
+        lambda url, params, headers, timeout: FakeResponse(reply, 400),
+    )
+
+    # checks error message contains text instead of some random ValueError.
+    # ensures openalex explanation reaches user.
+    with pytest.raises(ValueError, match="made_up_filter is not a valid field"):
+        search_works("x", extra_filter="made_up_filter:true")
