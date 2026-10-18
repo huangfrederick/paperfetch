@@ -1,6 +1,6 @@
 # Getting started with paperfetch
 
-**No programming experience needed.** This is a step by step guide for new users, from downloading paperfetch to having PDFs of papers in a folder on
+**No programming experience needed.** This is a step by step guide intended for users new to GitHub and any sort of development environments. Its goal is to walk you through from downloading paperfetch to having PDFs of papers in a folder on
 your computer.
 
 - **Time:** about 15 minutes the first time, mostly waiting for downloads. After that,
@@ -29,10 +29,10 @@ your computer.
 | **Terminal** | A window where you type instructions for your computer instead of clicking on a user interface. On Windows it may be called *PowerShell* or *Windows Terminal*. You only need it for a few short commands. |
 | **Command** | One line of text you paste into the terminal, then press **Enter** to run. |
 | **Folder path** | A folder's full address, like `/Users/JohnDoe/Documents/paperfetch-main` (Mac) or `C:\Users\JaneDoe\Documents\paperfetch-main` (Windows). |
-| **pixi** | A package management tool that sets up Python and everything paperfetch needs *inside the paperfetch folder*, without changing anything else on your computer. |
+| **pixi** | A package management tool that sets up Python and everything paperfetch needs *inside the paperfetch folder*, without changing anything else on your computer. If you've heard of pip or conda, this gives you the same functionality. |
 | **Notebook** | A document in your web browser that mixes instructions with small blocks of code, which you run by pressing a key. paperfetch comes with one. |
 | **JupyterLab** | The program that shows the notebook in your browser. pixi installs it for you. |
-| **API key** | A free, password-like code from OpenAlex that identifies you, so you get your own daily allowance of downloads from their repository. |
+| **API key** | A free, password-like code from OpenAlex that identifies you, so you get your own daily allowance of downloads from their repository. Keys are available to you in your profile once an account is created.|
 | **Open access** | Papers that the publisher or authors have made free to read, legally. paperfetch only downloads these. |
 
 ## Part 1: One-time setup
@@ -94,7 +94,7 @@ command is finished.
 ### Step 3: Install pixi
 
 pixi sets up the right version of Python and every tool paperfetch needs. You install
-it once per computer.
+it once per computer. (See [alternative installations](https://pixi.prefix.dev/latest/installation/#homebrew) such as homebrew and winget on pixi's own page)
 
 **Mac:** paste this and press Enter:
 
@@ -120,7 +120,7 @@ Check that it worked:
 pixi --version
 ```
 
-✅ **You should now see** something like `pixi 0.82.0`. Any version number is fine.
+**You should now see** something like `pixi 0.82.0`. Any version number is fine.
 
 ### Step 4: Start the notebook
 
@@ -136,7 +136,7 @@ When it's ready, your web browser opens **JupyterLab** showing the paperfetch no
 
 <!-- SCREENSHOT: docs/images/jupyterlab-quickstart.png | JupyterLab with quickstart.ipynb open at the top -->
 
-✅ **You should now see** a browser tab with **paperfetch quickstart** at the top of
+**You should now see** a browser tab with **paperfetch quickstart** at the top of
 the page.
 
 **Keep the terminal window open** while you use the notebook (minimizing it is fine).
@@ -322,6 +322,56 @@ Look for the message you see, or the closest match.
 Install pixi using the Mac command in [Step 3](#step-3-install-pixi) (or see
 <https://pixi.sh>), then run `pixi run notebook` in the paperfetch folder. Everything
 else in this guide applies, and the terminal commands are the same as on Mac.
+
+## Uninstalling paperfetch
+
+There are three parts. **Part 1 removes paperfetch.** Parts 2 and 3 also remove pixi,
+so only do those if you don't use pixi for anything else. Do them **in this order**:
+Part 2 needs pixi to still be installed.
+
+### 1. Remove paperfetch
+
+1. If the notebook is running, choose **File → Shut Down** in JupyterLab.
+2. **Move your `papers` folder** out of `paperfetch-main` (for example into
+   Documents) if you want to keep your PDFs.
+3. Delete the `paperfetch-main` folder.
+
+This removes paperfetch, the Python setup pixi made for it (about 400 MB), and your
+saved API key, if you saved one. Your OpenAlex account and key still exist; you can
+manage them at <https://openalex.org/settings/api>.
+
+### 2. Free the space pixi used for downloads
+
+pixi keeps a copy of everything it downloads, so future setups are faster. This copy
+is stored **outside** the paperfetch folder and can take several hundred MB. Open a
+terminal (any folder is fine) and run:
+
+```
+pixi clean cache
+```
+
+If it asks you to confirm, type `y` and press Enter.
+
+### 3. Remove pixi
+
+**Mac:** run:
+
+```bash
+rm -r ~/.pixi
+```
+
+`rm -r` PERMANENTLY deletes a folder and everything in it. It does not go to the
+Trash, so copy the command exactly and check everything beforehand. (If you installed pixi with Homebrew instead, run
+`brew uninstall pixi`.)
+
+**Windows:**
+
+1. If you installed pixi with `winget`, run `winget uninstall prefix-dev.pixi` and
+   skip to the check below. Otherwise, in File Explorer, type `%USERPROFILE%` into the
+   address bar, press Enter, and delete the `.pixi` folder.
+
+Verification: run `pixi --version`. If it says the command
+is not found or not recognized, pixi is gone.
 
 ## Getting help
 

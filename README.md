@@ -22,9 +22,8 @@ Saved 4 of 5 PDFs to papers/
 
 ## Why
 
-Programmatic access to subscription databases depends on your institution: Elsevier's
-Scopus API, for example, are governed by text/data mining agreements,
-negotiated with each institution. Finding the free, legal copy of a paper by hand
+Programmatic access to subscription databases largely depends on your university/institution's contracts with academic publishers. Elsevier's
+Scopus API, for example, are governed by text/data mining agreements. Finding the free, legal copy of a paper by hand
 often means clicking through publisher pages, repositories and preprint servers.
 
 OpenAlex already indexes where open-access copies live, and it's free for anyone.
@@ -36,8 +35,7 @@ OpenAlex marks as open access.
 - **Open-access-only search** over 250M+ works in OpenAlex, best matches first
 - **Two-step download:** tries the free publisher or repository link first, then
   falls back to OpenAlex's cached copy
-- **Verified files:** saves a file only if it really is a PDF, never a login or
-  error page
+- **Verified files:** saves a file only if it really is a PDF and will discard any HTML/login/error pages
 - **Re-runs are free:** already-downloaded papers are skipped
 - **Usable via three ways:** a beginner-friendly Jupyter notebook, the terminal, or from Python
 
@@ -76,10 +74,10 @@ index.csv listing which file is which paper.
 ### Command line
 
 ```bash
-paperfetch "open access citation advantage"           # search + download 10 papers into ./papers
+paperfetch "open access citation advantage"           # search + download 10 papers regarding "open access citation advantage" into ./papers
 paperfetch "numpy" --limit 25 --out data/pdfs         # more results, custom folder
 paperfetch "numpy" --no-download                      # only list the results
-paperfetch --help
+paperfetch --help                                     # list help menu
 ```
 
 Exit code is `0` on success and `1` if the search or OpenAlex fails, so it works in scripts.
@@ -121,6 +119,19 @@ Each result is a `Paper` with `title`, `doi`, `year`, `authors`, `pdf_url`,
 - **Duplicates:** a preprint and its published version can appear as two results.
 - **Copyright:** downloaded PDFs keep their original license. Check
   `best_oa_location.license` in OpenAlex before redistributing them.
+
+## Uninstalling
+
+- **Installed with pip:** `pip uninstall paperfetch`
+- **Downloaded or cloned folder (pixi):** delete the folder; its environment lives in
+  `.pixi/` inside it. To also free pixi's shared download cache, run
+  `pixi clean cache` *before* removing pixi itself
+  ([pixi uninstall docs](https://pixi.sh/latest/installation/)).
+- **Your data:** downloaded PDFs are in `papers/` (or your `--out` folder), so move them
+  out before deleting the folder. A saved API key is in `.env`.
+
+Step-by-step instructions for Mac and Windows are in the
+[getting started guide](docs/GETTING_STARTED.md#uninstalling-paperfetch).
 
 ## Development
 
