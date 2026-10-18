@@ -11,6 +11,7 @@
 
 # output
 data/
+papers/
 
 # python
 __pycache__/

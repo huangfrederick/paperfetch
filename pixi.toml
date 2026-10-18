@@ -2,7 +2,7 @@
 authors = ["tzujie huang <64339052+huangfrederick@users.noreply.github.com>"]
 channels = ["conda-forge"]
 name = "paperfetch"
-platforms = ["osx-arm64", "linux-64"]   # need to support windows/linux users later.
+platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 version = "0.1.0"
 
 [tasks]
@@ -17,11 +17,13 @@ paperfetch = { path = ".", editable = true }    # indicate package is defined by
 ruff = "*"
 pytest = "*"
 ipykernel = ">=7.4.0,<8"
+jupyterlab = ">=4.6.4,<5"
 
 [feature.dev.tasks]
 lint = "ruff check"
 format = "ruff format"
 test = "pytest"
+notebook = "jupyter lab notebooks/quickstart.ipynb"
 
 [environments]
 default = { features = ["dev"], solve-group = "default" }
